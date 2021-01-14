@@ -1,0 +1,22 @@
+{% block content %}
+<h1>Emails</h1>
+<ul>
+
+    {% for email in emails %}
+    <li>
+        <a href="">{{email.event.name}}: {{ email.subject }}</a>
+        <a href="{% url 'email-update' email.id %}">Edit</a>
+    </li>
+
+    {% empty %}
+    <li>No emails yet.</li>
+    {% endfor %}
+
+    <br>
+    <p>
+        <a href="{% url 'email-create' %}">Create Email Template</a>
+    </p>
+
+</ul>
+
+{% endblock %}
