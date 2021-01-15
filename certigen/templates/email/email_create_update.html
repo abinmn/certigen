@@ -4,4 +4,5 @@
     <input type="submit" value="Save">
 </form>
 
-<a href="{% url 'email-delete' email.id%}">Delete</a> {% endblock %}
+{% if update_email %}
+<a href="{% url 'email-delete' email.id %}">Delete</a> {% endif %} {% endblock %}
