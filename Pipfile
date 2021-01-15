@@ -7,6 +7,10 @@ verify_ssl = true
 
 [packages]
 django = "*"
+boto3 = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+django-heroku = "*"
 
 [requires]
 python_version = "3.8"
