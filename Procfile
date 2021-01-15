@@ -1,1 +1,1 @@
-web: gunicorn certigen.wsgi
+web: gunicorn --pythonpath certigen certigen.wsgi
