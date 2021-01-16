@@ -10,6 +10,7 @@ from django.http import JsonResponse
 
 from web.models import Email
 from web.forms import SendIndividualEmailForm
+from web.aws.sns import AwsSNS
 
 class EmailListView(ListView):
     model = Email
@@ -28,7 +29,12 @@ class EmailSendVeiw(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            print(form.cleaned_data['email'])
+            recipient_email = form.cleaned_data['email']
+            template_id = kwargs.get('pk')
+
+            if template_id:
+                sns = AwsSNS()
+                sns.send_email(template_id, [recipient_email])
             return redirect(reverse('emails'))
 
         return render(request, self.template_name, {'form': form})
