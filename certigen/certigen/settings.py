@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'web'
+    'storages',
+    'web',
+
 ]
 
 MIDDLEWARE = [
@@ -129,6 +131,18 @@ STATICFILES_DIRS = (
 )
 
 LOGIN_REDIRECT_URL = ''
+
+#AWS Storage
+AWS_STORAGE_BUCKET_NAME = 'storage.excelmec.tech'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'mysite/static'),
+]
+# STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 
 django_heroku.settings(locals())

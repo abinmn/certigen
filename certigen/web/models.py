@@ -14,7 +14,7 @@ class Email(models.Model):
     subject = models.CharField(max_length=78)
     body_plain_text = models.TextField()
     body_html_text = models.TextField(blank=True, null=True)
-    attachment = models.FileField(upload_to='email_attachment', blank=True, null=True)
+    attachment = models.FileField(upload_to='attachments',blank=True, null=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):

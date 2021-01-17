@@ -85,5 +85,5 @@ class EmailDetailsApiView(View):
         }
 
         if email.attachment:
-            data['attachment'] = email.attachment.path
+            data['attachment'] = f'{email.attachment.storage.location}/{email.attachment.name} '
         return JsonResponse(data)
