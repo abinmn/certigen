@@ -108,18 +108,9 @@ class EmailCSVUploadView(View):
 
         media_storage = EmailCsvStorage()
 
-        if not media_storage.exists(file_path_within_bucket): # avoid overwriting existing file
-            media_storage.save(file_path_within_bucket, file_obj)
-            file_url = media_storage.url(file_path_within_bucket)
+        media_storage.save(file_path_within_bucket, file_obj)
+        file_url = media_storage.url(file_path_within_bucket)
 
-            sns = AwsSNS()
-            sns.bulk_email_csv(file_path_within_bucket, template_id)
-            return redirect(reverse('emails'))
-        else:
-            return JsonResponse({
-                'message': 'Error: file {filename} already exists at {file_directory} in bucket {bucket_name}'.format(
-                    filename=file_obj.name,
-                    file_directory=file_directory_within_bucket,
-                    bucket_name=media_storage.bucket_name
-                ),
-            }, status=400)
+        sns = AwsSNS()
+        sns.bulk_email_csv(file_path_within_bucket, template_id)
+        return redirect(reverse('emails'))
