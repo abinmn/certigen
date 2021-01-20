@@ -1,7 +1,12 @@
 {% block content %}
 
 <h2>Send Email</h2>
-<form method="post">{% csrf_token %} {{ form.as_p }}
+<form method="post">{% csrf_token %} {{ individual_form.as_p }}
     <input type="submit" value="Send">
+</form>
+
+<form method="post" action="{% url 'email-csv' template_id %}" enctype="multipart/form-data">{% csrf_token %} {{ upload_file_form.as_p }}
+    <input type="hidden" name="template_id" value="{{template_id}}">
+    <input type="submit" value="Upload">
 </form>
 {% endblock %}

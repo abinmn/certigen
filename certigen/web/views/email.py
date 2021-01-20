@@ -1,3 +1,5 @@
+import os
+
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView
 from django.views.generic.edit import UpdateView
@@ -8,8 +10,9 @@ from django.views import View
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 
+from web.storage import EmailCsvStorage
 from web.models import Email
-from web.forms import SendIndividualEmailForm
+from web.forms import SendIndividualEmailForm, UploadFileForm
 from web.aws.sns import AwsSNS
 
 class EmailListView(ListView):
@@ -23,13 +26,16 @@ class EmailSendVeiw(View):
     form_class = SendIndividualEmailForm
     template_name = 'email/email_send.html'
     def get(self, request, *args, **kwargs):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
+        individual_form = self.form_class()
+        upload_file_form = UploadFileForm
+        template_id = kwargs.get('pk')
+
+        return render(request, self.template_name, {'individual_form': individual_form, 'upload_file_form':upload_file_form, 'template_id':template_id})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            recipient_email = form.cleaned_data['email']
+        individual_form = self.form_class(request.POST)
+        if individual_form.is_valid():
+            recipient_email = individual_form.cleaned_data['email']
             template_id = kwargs.get('pk')
 
             if template_id:
@@ -37,7 +43,7 @@ class EmailSendVeiw(View):
                 sns.send_email(template_id, [recipient_email])
             return redirect(reverse('emails'))
 
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {'individual_form': individual_form})
 
     
 
@@ -87,3 +93,33 @@ class EmailDetailsApiView(View):
         if email.attachment:
             data['attachment'] = f'{email.attachment.storage.location}/{email.attachment.name} '
         return JsonResponse(data)
+
+
+class EmailCSVUploadView(View):
+    def post(self, requests, **kwargs):
+        file_obj = requests.FILES.get('file', '')
+        template_id = requests.POST.get('template_id', '0')
+        file_directory_within_bucket = f'recipients/{template_id}'
+
+        file_path_within_bucket = os.path.join(
+            file_directory_within_bucket,
+            file_obj.name
+        )
+
+        media_storage = EmailCsvStorage()
+
+        if not media_storage.exists(file_path_within_bucket): # avoid overwriting existing file
+            media_storage.save(file_path_within_bucket, file_obj)
+            file_url = media_storage.url(file_path_within_bucket)
+
+            sns = AwsSNS()
+            sns.bulk_email_csv(file_path_within_bucket, template_id)
+            return redirect(reverse('emails'))
+        else:
+            return JsonResponse({
+                'message': 'Error: file {filename} already exists at {file_directory} in bucket {bucket_name}'.format(
+                    filename=file_obj.name,
+                    file_directory=file_directory_within_bucket,
+                    bucket_name=media_storage.bucket_name
+                ),
+            }, status=400)
